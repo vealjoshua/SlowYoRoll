@@ -1,70 +1,149 @@
 ﻿<!DOCTYPE html>
 <!--
 Joshua Veal-Briscoe
-08/25/2016
-HW1 
-1. Randomly choose a direction: up, down, left, or right. 
-Each direction should be equally likely, over the long haul, to be chosen.
-
-2. If a single move in the randomly chosen direction takes you off the grid, then don’t move the marker. 
-If the step in that direction remains on the grid, then move the marker to the new location. 
-This means that during each turn you will move the marker either the distance of one cell, or not at all.
-
- 3. Repeat until one of two things happens: the marker gets to the upper right hand corner of the grid, or you take one million steps.
+09/02/2016
+HW2	requires	you	to	revise	and	extend	your	program.	I	want	you	to	use	graphics	to	show	the	user	what	is
+happening	as	the	random	walk	touches	various	cells.
 -->
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>Slow yo Roll</title>
 </head>
-<body>
-    <script type="text/javascript">
-        function rollDice() {
-		
-		// Array in an array to hold grid
-		var spreadsheet = new Array(10);
-        for (var i = 0; i < 10; i++)
-            spreadsheet[i] = new Array(10);
-		
-        var diceRoll;
-        var playerPositionX = 0, playerPositionY = 0;
-        var i;
-		
-		// Roll the dice until the position is 9,9 or the dice is rolled 1,000,000 times
-        for (i = 0; i < 1000000; i++) {
-            diceRoll = Math.floor((Math.random() * 4) + 1)
+    <body>
+        <canvas id="myCanvas" width="500" height="500" style="border:1px solid #c3c3c3;">
+            Your browser does not support the HTML5 canvas tag.
+        </canvas>
+        <script type="text/javascript">
+
+            var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d");
+            ctx.fillStyle = "#00FF00";
+
+            var playerPositionX = 0, playerPositionY = 9;
+
+            // Array in an array to hold grid
+            var dimensionX = 10, dimensionY = 10;
+            var grid = new Array(dimensionX);
+            for (var i = 0; i < dimensionX; i++)
+                grid[i] = new Array(dimensionY);
+
+            // Initialize grid
+            for (var i = 0; i < dimensionX; i++)
+                for (var j = 0; j < dimensionY; j++)
+                    grid[i][j] = 0;
+            grid[0][dimensionY - 1] = 1;
+            var diceRoll;
+            var maxX = 0, maxY = 9;
+            var minX = 0, minY = 9;
+            var i = 0;
+
+            // rollDice is called every time the button is pressed
+            function rollDice() {
+                ctx.clearRect(0,0,500,500);
+                playerPositionX = 0; playerPositionY = 9;
+                ctx.fillRect(playerPositionX * 50, playerPositionY * 50, 50, 50);
+
+                // Initialize grid
+                for(var a = 0; a < dimensionX; a++)
+                    for(var b = 0; b < dimensionY; b++)
+                        grid[a][b] = 0;
+                grid[0][dimensionY - 1] = 1;
+
+                maxX = 0; maxY = 9;
+                minX = 0; minY = 9;
+                i = 0;
+
+                // Start the process
+                spotMaker();
+            }
+
+            // Roll the dice until the position is 9,9 or the dice is rolled 1,000,000 times
+            function spotMaker() {
+                // Assign a random number 1-4
+                diceRoll = Math.floor((Math.random() * 4) + 1);
+
+                // Increment number of steps taken
+                i++;
+                console.log(i);
+
+                // Clear the previous cell so grid does not get confusing
+                ctx.clearRect(playerPositionX * 50, playerPositionY * 50, 50, 50);
+    
+                // Adjust the player position depending on dice roll. Player cannot step outside of dimensions set.
+                if (diceRoll == 1) {
+                    if (playerPositionX != 0)
+                        playerPositionX -= 1;
+                }
+                else if (diceRoll == 2) {
+                    if (playerPositionX != (dimensionX - 1))
+                        playerPositionX += 1;
+                }
+                else if (diceRoll == 3) {
+                    if (playerPositionY != (dimensionY - 1))
+                        playerPositionY += 1;
+                }
+                else if (diceRoll == 4) {
+                    if (playerPositionY != 0)
+                        playerPositionY -= 1;
+                }
+    
+                // Fill the position of the current cell
+                ctx.fillRect(playerPositionX * 50, playerPositionY * 50, 50, 50);
+    
+                // Increment number of steps taken in a cell
+                grid[playerPositionX][playerPositionY]++;
+    
+                // Find the cell with the most steps
+                if (grid[playerPositionX][playerPositionY] > grid[maxX][maxY]) {
+                    maxX = playerPositionX;
+                    maxY = playerPositionY;
+                }
+    
+                if ((playerPositionX == 9 && playerPositionY == 0) || i == 1000000) { // If the top right corner is hit or 1,000,000 steps are taken
+                    // Output the results
+                    print();
+
+                    // Break the loop
+                    return true;
+                }
+                // Continue until the statement above reads true
+                setTimeout(spotMaker, 200);
+            }
             
-            if (diceRoll == 1) {
-                if (playerPositionX != 0)
-                    playerPositionX -= 1;
-            }
-            else if (diceRoll == 2) {
-                if (playerPositionX != 9)
-                    playerPositionX += 1;
-            }
-            else if (diceRoll == 3) {
-                if (playerPositionY != 9)
-                    playerPositionY += 1;
-            }
-            else if (diceRoll == 4) {
-                if (playerPositionY != 0)
-                    playerPositionY -= 1;
-            }
+            // Output
+            function print() {
+                // Output player position and number of steps taken
+                var myString = "Player position is: (" + playerPositionX + ", " + playerPositionY + ") with " + i + " steps taken.";
+                console.log(myString);
+                document.getElementById('positionAndSteps').innerHTML = myString;
 
-            if (playerPositionX == 9 && playerPositionY == 9)
-                break;
-        }
-		
-		// Output the results
-		var myString = "Player position is: " + playerPositionX + ", " + playerPositionY + " with " + i + " dice rolls.";
-        console.log(myString);
-		document.getElementById('output').innerHTML = myString
-		}
-    </script>
+                // Output max
+                myString = "Max: (" + maxX + ", " + maxY + ")" + " with " + grid[maxX][maxY] + " steps.";
+                console.log(myString);
+                document.getElementById('max').innerHTML = myString;
 
-	<button type="button"
-	onclick="return rollDice()">
-	Roll Dice</button>
-	<p id="output">	</p>
-</body>
+                // Find the cell with the least steps. We need to test for cells with no steps taken in them.
+                for (var k = 0; k < dimensionX; k++)
+                    for (var l = 0; l < dimensionY; l++) {
+                        if (grid[k][l] < grid[minX][minY]) {
+                            minX = k;
+                            minY = l;
+                        }
+                    }
+
+                // Output min
+                myString = "Min: (" + minX + ", " + minY + ")" + " with " + grid[minX][minY] + " steps.";
+                console.log(myString);
+                document.getElementById('min').innerHTML = myString;
+            }
+        </script>
+
+        <button type="button" onclick="return rollDice()">
+            Roll Dice
+        </button>
+        <p id="positionAndSteps"> </p>
+        <p id="max"> </p>
+        <p id="min"> </p>
+    </body>
 </html>
